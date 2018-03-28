@@ -19,6 +19,12 @@ object MTGCardPageParser {
       .map(elem  => (parseCardInfo(elem), parseCardCharacters(elem)))
   }
 
+  def parseCardInfoOnly(doc: Document): List[MTGCardPageInfo] = {
+    doc.select(".cardComponentContainer")
+      .filterNot(_.children().size == 0)
+      .map(elem  => parseCardInfo(elem))
+  }
+
   def parseLanguages(langsDoc: Document): List[CardLanguage] =
     langsDoc.select("tr.cardItem")
       .map(_.select("td"))
@@ -36,7 +42,7 @@ object MTGCardPageParser {
 
   def parseCardInfo(elem: Element): MTGCardPageInfo = {
     val cardName = elem.selectFirst("[id$='nameRow'] div.value").text()
-    val img = elem.selectFirst("img[src$='type=card']").absUrl("src")
+    val img = elem.selectFirst("img[id$='_cardImage']").absUrl("src")
     val cardText = elem.select("[id$='_textRow'] div.value").flatMap(flattenText)
     val flavorText = elem.select("[id$='_flavorRow'] div.value").flatMap(flattenText)
 
@@ -88,7 +94,7 @@ object MTGCardPageParser {
       legendary = legendary,
       power = ptValue.filter(_.length == 2).map(_(0)),
       toughness = ptValue.filter(_.length == 2).map(_(1)),
-      loyality = ptValue.filter(_.length == 1).map(_(0).toShort),
+      loyality = ptValue.filter(_.length == 1).map(_(0)),
       expansion = expansion,
       allSets = otherExpansions,
       rarity = rarity,
@@ -190,7 +196,7 @@ case class MTGCardCharacters(
                               legendary: Boolean,
                               power: Option[String],
                               toughness: Option[String],
-                              loyality: Option[Short],
+                              loyality: Option[String],
                               expansion: Expansion,
                               allSets: List[Expansion],
                               artist: String,
@@ -225,6 +231,7 @@ case class MTGCardCharacters(
       "subTypes" -> subTypes.map(_.toJsonElement).toJsonElement,
       "power" -> power.map(_.toJsonElement).toJsonElement,
       "toughness" -> toughness.map(_.toJsonElement).toJsonElement,
+      "loyality" -> loyality.map(_.toJsonElement).toJsonElement,
       "rarity" -> rarity.toString.toJsonElement,
       "expansion" -> expansion,
       "allSets" -> allSets.toJsonElement,

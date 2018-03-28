@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; UTF-8" />
+    <title>Card register</title>
+    <script language="javascript" src="jquery-3.3.1.slim.js" ></script>
+    <script language="javascript" src="cards.js" ></script>
+    <script language="javascript" src="data/KTK_set.js" charset="utf-8"></script>
+    <script language="javascript" src="data/DTK_set.js" charset="utf-8"></script>
+    <script language="javascript" src="data/KLD_set.js" charset="utf-8"></script>
+    <script language="javascript" src="data/AER_set.js" charset="utf-8"></script>
+    <script language="javascript" src="data/W17_set.js" charset="utf-8"></script>
+    <script language="javascript" src="data/AKH_set.js" charset="utf-8"></script>
+    <script language="javascript" src="data/HOU_set.js" charset="utf-8"></script>
+    <script language="javascript" src="data/XLN_set.js" charset="utf-8"></script>
+    <script language="javascript" src="data/RIX_set.js" charset="utf-8"></script>
+    <script language="javascript" src="data/A25_set.js" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="mtg.css" />
+</head>
+
+<body>
+
+<div id="navigation">
+    <form id="navigation">
+    </form>
+    <select id="expansion" name="expansion" form="navigation">
+    </select>
+    <input id="typing">
+</div>
+
+<div id="main">
+    <div id="card_face">
+        <div class="face_one hidden">
+            <img class="card_face" />
+            <div class="card_name" />
+        </div>
+        <div class="face_two hidden"></div>
+    </div>
+    <div id="cards_count">
+    </div>
+</div>
+<p>
+<textarea id="interface" rows="10" cols="100">
+</textarea>
+
+<script language="javascript">
+    $(document).ready(function() {
+        cards.init();
+    });
+</script>
+</body>
+
+</html>

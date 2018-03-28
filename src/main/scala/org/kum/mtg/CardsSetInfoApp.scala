@@ -144,8 +144,17 @@ class CardSetInfo(config: CardSetConfig) {
 
   def downloadDocument(url: URL): Try[Document] = {
 
-    val cacheFileName = "cache/" + url.toString.replaceAll("[/:?&+\\[\\]]+", "_").replaceAll("[\"%'=]+", "-")
-    val file: File = new File(cacheFileName)
+    val fileName = url.toString.replaceAll("[/:?&+\\[\\]]+", "_").replaceAll("[\"%'=]+", "-")
+    val subdir = "cache/v" + (fileName.hashCode % 32).toHexString
+
+    Some(new File(subdir)).filterNot(_.exists()).foreach(_.mkdir())
+
+    val cacheFileName = "cache/" + fileName
+    val oldCachedFile: File = new File(cacheFileName)
+    val file: File = new File(s"$subdir/$fileName")
+    if (oldCachedFile.exists()) {
+      oldCachedFile.renameTo(file)
+    }
     val cached = if (file.exists()) {
       println(s">> cache: $cacheFileName for $url")
       Success(file)
@@ -206,11 +215,12 @@ class CardSetInfo(config: CardSetConfig) {
         langs.map(lang =>
           downloadDocument(new URL(lang.url + "&printed=true"))
             .map(doc =>
-              MTGCardPageParser.parseOracle(doc)
+              MTGCardPageParser.parseCardInfoOnly(doc)
             ) match {
             case Success(cards) =>
-              lang.copy(cardInfo = cards.map(_._1).toJsonElement)
+              lang.copy(cardInfo = cards.toJsonElement)
             case Failure(ex) =>
+              ex.printStackTrace()
               lang.copy(error = ex.toString.toJsonElement)
           }
         )

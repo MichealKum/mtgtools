@@ -1,0 +1,7 @@
+#card_face, #cards_count {
+    display: inline;
+}
+
+#cards_count {
+    font-size: 2em;
+}

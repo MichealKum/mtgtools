@@ -3,7 +3,7 @@ package org.kum.util
 object JsonUtil {
 
   implicit class JsonString(str: String) {
-    def jsonEncode(): String = str.replaceAll("\\\\", "\\\\").replaceAll("\"", "\\\"")
+    def jsonEncode(): String = str.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"")
     def toJsonElement: JsonElement = new JsonElement {
       override def toJson: String = s""""${str.jsonEncode()}""""
     }
