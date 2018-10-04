@@ -16,6 +16,20 @@ case object BlackMana extends ColoredMana("black")
 case object RedMana extends ColoredMana("red")
 case object GreenMana extends ColoredMana("green")
 
+case object BlueBlackMana extends ColoredMana("blue|black")
+case object BlueGreenMana extends ColoredMana("blue|green")
+case object BlueRedMana extends ColoredMana("blue|red")
+case object BlueWhiteMana extends ColoredMana("blue|white")
+
+case object BlackGreenMana extends ColoredMana("black|green")
+case object BlackRedMana extends ColoredMana("black|red")
+case object BlackWhiteMana extends ColoredMana("black|white")
+
+case object GreenWhiteMana extends ColoredMana("green|white")
+case object GreenRedMana extends ColoredMana("green|red")
+
+case object RedWhiteMana extends ColoredMana("red|white")
+
 case class ColorlessMana(val count: Short) extends Mana {
   override def toString: String = s"{$count}"
 

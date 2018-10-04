@@ -1,7 +1,7 @@
 package org.kum.net
 
 import java.io.{ByteArrayInputStream, InputStream}
-
+import java.net.URLEncoder
 import org.kum.util.StringUtil
 
 import scalaj.http._
@@ -19,15 +19,7 @@ class HttpFetcher(delay: Long = 1000 /* one second */) {
       Thread.sleep(sleepTime)
     }
     val (page, paramsOpt) = split2(url, "[?]")
-    val response = Http(page)
-      .params(
-        paramsOpt.toList
-          .flatMap(_.split("[&]"))
-          .map(param => {
-            val p = split2(param, "=")
-            p._1 -> p._2.get
-          })
-      )
+    val resopnse = Http(url)
       .headers(headers)
       .timeout(10000, 20000)
       .asBytes
@@ -35,6 +27,7 @@ class HttpFetcher(delay: Long = 1000 /* one second */) {
     nextTimestamp = System.currentTimeMillis() + delay
     response.code match {
       case 200 => Success(new ByteArrayInputStream(response.body))
+      case 302 => Failure(new IllegalArgumentException(response.body + "/" + response))
       case _ => Failure(new IllegalArgumentException(s"Return code ${response.code} for $url"))
     }
   }

@@ -2,6 +2,18 @@
     display: inline;
 }
 
+#card_face {
+    min-width: 223px;
+    min-height: 311px;
+}
+
 #cards_count {
     font-size: 2em;
+}
+
+#cards_per_expansion, .exp_info {
+    padding-right: 10px;
+}
+#cards_per_expansion, .exp_info :before {
+    text: ', ';
 }

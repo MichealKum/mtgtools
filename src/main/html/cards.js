@@ -1,11 +1,11 @@
 var cards = (function() {
-    var storeCards = "registered.cards";
+    var storeCards = "registeredCards";
     var cardsExps = [];
     var cardsSet = {};
     var expCards = {};
     var cardsByNum = {};
     var cardsByName = {};
-    var regValue = {};
+    var regValue = [];
     var current = {number: 1, typed: 1, exp: {}, card: {}};
     var registered = localStorage.getItem(storeCards);
     if (registered) {
@@ -75,7 +75,6 @@ var cards = (function() {
         var eCode = event.originalEvent.key;
         if (eCode <= "9" && eCode >= "0") {
             current.typed = (current.typed * 10 + Number.parseInt(eCode)) % 1000;
-            console.log("typed: " + current.typed);
             if (current.typed > 0 && current.typed <= max) {
                 current.number = current.typed;
                 showCurrent();
@@ -128,16 +127,7 @@ var cards = (function() {
         current.exp = $("#expansion").val();
         current.card = cardsByNum[current.exp + "_" + current.number];
         window.card = current.card;
-        regValue = registered[current.card.info[0].card.name];
-        if (!regValue) {
-            regValue = [];
-        }
-        var expCount = 0;
-        for (idx in regValue) {
-            if (regValue[idx] == current.exp) {
-                expCount++;
-            }
-        }
+
         var text = current.number + "." + current.card.info[0].card.name;
         var rus = byLanguage(current.card, "Russian");
         if (rus) {
@@ -145,6 +135,36 @@ var cards = (function() {
         }
         $(".face_one .card_name").text(text);
         $(".face_one .card_face").attr("src", current.card.info[0].card.image);
+
+
+        // calculate amount per expansions
+        var allSets = current.card.info[0].characteristics.allSets;
+        regValue = registered[current.card.info[0].card.name];
+        if (!regValue) {
+            regValue = [];
+        }
+        var setSize = {};
+        for (idx in allSets) {
+            setSize[allSets[idx].shortName] = 0;
+        }
+        var expCount = 0;
+        for (idx in regValue) {
+            var sn = regValue[idx];
+            if (sn == current.exp) {
+                expCount++;
+            }
+            setSize[sn] = setSize[sn] + 1;
+        }
+
+        $("#cards_per_exepnsion").text("");
+        for (idx in allSets) {
+            var sn = allSets[idx].shortName;
+            var span = $("<span class='exp_info'/>")
+                .attr("title", allSets[idx].name)
+                .text(sn + ": " + setSize[sn]);
+            $("#cards_per_exepnsion").append(span);
+        }
+
         $("#cards_count").text(expCount + "(" + regValue.length + ")");
     }
 
@@ -197,6 +217,18 @@ var cards = (function() {
         return -1;
     };
 
+    function unite(name) {
+        var other = JSON.parse(localStorage.getItem(name));
+        for (extName in other) {
+            if (!registered[extName]) {
+                registered[extName] = [];
+            }
+            registered[extName] = registered[extName].concat(other[extName]);
+        }
+        localStorage.setItem(storeCards, JSON.stringify(registered));
+        showCurrent();
+    }
+
     function addCards(newCards) {
             for (cardIdx in newCards) {
                 var card = newCards[cardIdx];
@@ -221,8 +253,9 @@ var cards = (function() {
     }
 
     var model = {
-        init:       init,
-        addCards:   addCards
+        init:     init,
+        addCards: addCards,
+        unite:    unite
     };
     return model;
 })();
