@@ -143,8 +143,9 @@ var cards = (function() {
         current.exp = $("#expansion").val();
         current.card = cardsByNum[current.exp + "_" + current.number];
         window.card = current.card;
+        var cardName = current.card.info[0].card.name;
 
-        var text = current.number + "." + current.card.info[0].card.name;
+        var text = current.number + "." + cardName;
         var rus = byLanguage(current.card, "Russian");
         if (rus) {
             text += " (" + rus.card[0].name + ") ";
@@ -153,8 +154,8 @@ var cards = (function() {
         $(".face_one .card_face").attr("src", current.card.info[0].card.image);
 
 
-        var allSets = current.card.info[0].characteristics.allSets;
-        regValue = registered[current.card.info[0].card.name];
+        var allSets = cardsByNum[cardsByName[cardName]].info[0].characteristics.allSets;
+        regValue = registered[cardName];
         if (!regValue) {
             regValue = {};
         }
@@ -231,6 +232,8 @@ var cards = (function() {
     };
 
     function unite(name) {
+        console.log("Not yet implemented: unite");
+        return;
         var other = JSON.parse(localStorage.getItem(name));
         for (extName in other) {
             if (!registered[extName]) {
