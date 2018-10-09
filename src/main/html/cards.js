@@ -5,7 +5,7 @@ var cards = (function() {
     var expCards = {};
     var cardsByNum = {};
     var cardsByName = {};
-    var regValue = [];
+    var regValue = {};
     var current = {number: 1, typed: 1, exp: {}, card: {}};
     var registered = localStorage.getItem(storeCards);
     if (registered) {
@@ -45,26 +45,49 @@ var cards = (function() {
     }
 
     function createCSV() {
-        var str = "Name\tCount\tset_code\n";
+        var str = "Name\tCount\tset_code\tis_foil\n";
         for (name in registered) {
-            var sets = registered[name];
-            var count = sets.length;
-            if (count == 0) {
-                continue;
-            }
-            var regSet = {};
-            for (idx in sets) {
-                var setCode = sets[idx];
-                if (!regSet[setCode]) {
-                    regSet[setCode] = 0;
+            var exps = registered[name];
+            for (exp in exps) {
+                var expValue = exps[exp];
+                if (expValue.norm > 0) {
+                    str += name + "\t" + expValue.norm + "\t" + exp + "\t\n";
                 }
-                regSet[setCode] = regSet[setCode] + 1;
-            }
-            for (setCode in regSet) {
-                str += name + "\t" + regSet[setCode] + "\t" + setCode  + "\n";
+                if (expValue.foil > 0) {
+                    str += name + "\t" + expValue.foil + "\t" + exp + "\t1\n";
+                }
             }
         }
         $("#interface").val(str);
+    }
+
+    function createExpValue() {
+        return {norm: 0, foil: 0, total: 0};
+    }
+
+    function registerCard(exp, count, foil) {
+        var expValue = regValue[exp];
+        if (!expValue) {
+            if (count < 0) {
+                return;
+            }
+            expValue = createExpValue();
+        }
+        if (foil) {
+            if (count < 0) {
+                count = Math.max(-expValue.foil, count);
+            }
+            expValue.foil = expValue.foil + count;
+        } else {
+            if (count < 0) {
+                count = Math.max(-expValue.norm, count);
+            }
+            expValue.norm = expValue.norm + count;
+        }
+        expValue.total = expValue.total + count;
+        regValue[exp] = expValue;
+        save();
+        showCurrent();
     }
 
     function keyPressed(event) {
@@ -81,6 +104,8 @@ var cards = (function() {
             }
             return false;
         }
+        var shiftKey = event.originalEvent.shiftKey;
+        var ctrlKey = event.originalEvent.ctrlKey;
         switch (eCode) {
             case "e":
             case "E":
@@ -105,19 +130,10 @@ var cards = (function() {
                 }
                 break;
             case "ArrowRight":
-                regValue.push(current.exp);
-                save();
-                showCurrent();
+                registerCard(current.exp, 1, ctrlKey || shiftKey);
                 break;
             case "ArrowLeft":
-                var index = regValue.indexOf(current.exp);
-                if (index >= 0) {
-                    var tail = regValue.splice(index);
-                    tail.pop();
-                    regValue = regValue.concat(tail);
-                    save();
-                    showCurrent();
-                }
+                registerCard(current.exp, -1, ctrlKey || shiftKey);
                 break;
         }
         return false;
@@ -127,8 +143,9 @@ var cards = (function() {
         current.exp = $("#expansion").val();
         current.card = cardsByNum[current.exp + "_" + current.number];
         window.card = current.card;
+        var cardName = current.card.info[0].card.name;
 
-        var text = current.number + "." + current.card.info[0].card.name;
+        var text = current.number + "." + cardName;
         var rus = byLanguage(current.card, "Russian");
         if (rus) {
             text += " (" + rus.card[0].name + ") ";
@@ -137,35 +154,32 @@ var cards = (function() {
         $(".face_one .card_face").attr("src", current.card.info[0].card.image);
 
 
-        // calculate amount per expansions
-        var allSets = current.card.info[0].characteristics.allSets;
-        regValue = registered[current.card.info[0].card.name];
+        var allSets = cardsByNum[cardsByName[cardName]].info[0].characteristics.allSets;
+        regValue = registered[cardName];
         if (!regValue) {
-            regValue = [];
-        }
-        var setSize = {};
-        for (idx in allSets) {
-            setSize[allSets[idx].shortName] = 0;
-        }
-        var expCount = 0;
-        for (idx in regValue) {
-            var sn = regValue[idx];
-            if (sn == current.exp) {
-                expCount++;
-            }
-            setSize[sn] = setSize[sn] + 1;
+            regValue = {};
         }
 
+        var total = 0;
         $("#cards_per_exepnsion").text("");
         for (idx in allSets) {
             var sn = allSets[idx].shortName;
+            var cnt = createExpValue();
+            if (regValue[sn]) {
+                cnt = regValue[sn];
+            }
+            total = total + cnt.total;
             var span = $("<span class='exp_info'/>")
                 .attr("title", allSets[idx].name)
-                .text(sn + ": " + setSize[sn]);
+                .text(sn + ": " + cnt.norm + "n + " + cnt.foil + "f");
             $("#cards_per_exepnsion").append(span);
         }
+        var cur = createExpValue();
+        if (regValue[current.exp]) {
+            cur = regValue[current.exp];
+        }
 
-        $("#cards_count").text(expCount + "(" + regValue.length + ")");
+        $("#cards_count").text(cur.norm + "n + " + cur.foil  + "f " + "(" + total + ")");
     }
 
     function byLanguage(card, lang) {
@@ -218,6 +232,8 @@ var cards = (function() {
     };
 
     function unite(name) {
+        console.log("Not yet implemented: unite");
+        return;
         var other = JSON.parse(localStorage.getItem(name));
         for (extName in other) {
             if (!registered[extName]) {
