@@ -65,6 +65,34 @@ var cards = (function() {
         return {norm: 0, foil: 0, total: 0};
     }
 
+    function unitCardCounts(one, two) {
+        var results = {};
+        if (one) {
+            function cloneExpValue(value) {
+                return {norm: value.norm, foil: value.foil, total: value.total};
+            }
+            for (name in one) {
+                results[name] = cloneExpValue(one[name]);
+            }
+        }
+        if (two) {
+            function unit(a, b) {
+                if (!a) {
+                    a = createExpValue();
+                }
+                return {
+                    norm: a.norm + b.norm,
+                    foil: a.foil + b.foil,
+                    total: a.total + b.total
+                };
+            }
+            for (name in two) {
+                results[name] = unit(results[name], two[name]);
+            }
+        }
+        return results;
+    }
+
     function registerCard(exp, count, foil) {
         var expValue = regValue[exp];
         if (!expValue) {
@@ -197,6 +225,48 @@ var cards = (function() {
         showCurrent();
     }
 
+    function moveCards() {
+        var setName = $("#storage_name").val().replace(/\W/g, "").trim();
+        $("#storage_name").val(setName);
+        if (setName == "") {
+            alert("Storage name should contain only alpha-numeric characters.");
+            return;
+        }
+        var fullName = "registeredCards_" + setName;
+        if (localStorage[fullName]) {
+            alert("Storage already exists.");
+            return;
+        }
+        localStorage.setItem(fullName, localStorage[storeCards]);
+        localStorage.setItem(storeCards, "{}");
+        registered = {};
+        showCurrent();
+    }
+
+    function mergeCards() {
+        var setName = $("#storage_name").val().replace(/\W/g, "").trim();
+        $("#storage_name").val(setName);
+        if (setName == "") {
+            alert("Storage name should contain only alpha-numeric characters.");
+            return;
+        }
+        var fullName = "registeredCards_" + setName;
+        if (localStorage[fullName] === undefined) {
+            alert("Storage " + setName + " not found.");
+            return;
+        }
+        var other = JSON.parse(localStorage.getItem(fullName));
+        var merged = JSON.parse(JSON.stringify(registered));
+        for (extName in other) {
+            merged[extName] = unitCardCounts(other[extName], merged[extName]);
+        }
+        localStorage.setItem(storeCards, JSON.stringify(merged));
+        registered = merged;
+        localStorage.removeItem(fullName);
+        alert("Storage " + setName + " was merged and removed");
+        showCurrent();
+    }
+
     function init() {
         var expSelect = $("#expansion");
         expSelect.find("option").remove();
@@ -210,6 +280,8 @@ var cards = (function() {
         $("#interface").val("");
         $("#typing").on("keypress", keyPressed);
         $("#expansion").on("change", changeExp);
+        $("#move").on("click", moveCards);
+        $("#merge").on("click", mergeCards);
         showCurrent();
     };
 
@@ -230,20 +302,6 @@ var cards = (function() {
         }
         return -1;
     };
-
-    function unite(name) {
-        console.log("Not yet implemented: unite");
-        return;
-        var other = JSON.parse(localStorage.getItem(name));
-        for (extName in other) {
-            if (!registered[extName]) {
-                registered[extName] = [];
-            }
-            registered[extName] = registered[extName].concat(other[extName]);
-        }
-        localStorage.setItem(storeCards, JSON.stringify(registered));
-        showCurrent();
-    }
 
     function addCards(newCards) {
             for (cardIdx in newCards) {
@@ -270,8 +328,7 @@ var cards = (function() {
 
     var model = {
         init:     init,
-        addCards: addCards,
-        unite:    unite
+        addCards: addCards
     };
     return model;
 })();
