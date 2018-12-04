@@ -139,7 +139,11 @@ object MTGCardPageParser {
       case "Blue or Black" => BlueBlackMana
       case "Blue or Red" => BlueRedMana
       case "Black or Green" => BlackGreenMana
+      case "Black or Red" => BlackRedMana
       case "Red or White" => RedWhiteMana
+      case "Red or Green" => GreenRedMana
+      case "White or Blue" => BlueWhiteMana
+      case "White or Black" => BlackWhiteMana
       case "Variable Colorless" => GreenMana
       case colorless => ColorlessMana(colorless.toShort)
     }

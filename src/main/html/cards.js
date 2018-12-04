@@ -179,7 +179,17 @@ var cards = (function() {
             text += " (" + rus.card[0].name + ") ";
         }
         $(".face_one .card_name").text(text);
-        $(".face_one .card_face").attr("src", current.card.info[0].card.image);
+        // calculate card's image location
+        var imageSrc = current.card.info[0].card.image;
+        var mtgCardId = imageSrc.replace(/.*multiverseid=([0-9]*).*/, "$1");
+        var transform = "";
+        if (images.hasImage(mtgCardId)) {
+            if (imageSrc.indexOf("rotate90") > 0) {
+                transform = "rotate(90deg) translateY(-20%)";
+            }
+            imageSrc =  "../../../../mtg_images/images/" + mtgCardId.substr(mtgCardId.length - 2) + "/" + mtgCardId;
+        }
+        $(".face_one .card_face").css("transform", transform).attr("src", imageSrc);
 
 
         var allSets = cardsByNum[cardsByName[cardName]].info[0].characteristics.allSets;
@@ -326,9 +336,48 @@ var cards = (function() {
             }
     }
 
+    var images = function() {
+        var byTail = {};
+
+        function getByTail(id, autocreate) {
+            var tail = "i" + id.substr(id.length - 2);
+            var subset = byTail[tail];
+            if (!subset) {
+                subset = [];
+                if (autocreate) {
+                    byTail[tail] = subset;
+                }
+            }
+            return subset;
+        }
+
+        function add(id) {
+            var subset = getByTail(id, true);
+            if (subset.indexOf(id) == -1) {
+                subset.push(id);
+            }
+            window.mtgImages = byTail;
+        }
+        function hasImage(id) {
+            window.byId = {id: id, subset: getByTail(id, false)};
+            return getByTail(id, false).indexOf(id) != -1;
+        }
+        return {
+            add: add,
+            hasImage: hasImage
+        }
+    }();
+
+    function addImages(ids) {
+        ids.forEach(function(id) {
+            images.add("" + id);
+        });
+    }
+
     var model = {
         init:     init,
-        addCards: addCards
+        addCards: addCards,
+        addImages: addImages
     };
     return model;
 })();

@@ -19,7 +19,7 @@ class HttpFetcher(delay: Long = 1000 /* one second */) {
       Thread.sleep(sleepTime)
     }
     val (page, paramsOpt) = split2(url, "[?]")
-    val resopnse = Http(url)
+    val response = Http(url)
       .headers(headers)
       .timeout(10000, 20000)
       .asBytes

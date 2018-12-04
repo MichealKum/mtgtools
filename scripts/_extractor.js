@@ -1,0 +1,1 @@
+var imgs = $$(".leftCol a img") ;imgs.forEach(function(im) {var a = im.parentElement;var id = a.attributes.href.nodeValue.replace(/.*multiverseid=([0-9]*).*/, "$1"); console.log("->" + id); im.setAttribute("mtgImageId", id);})
